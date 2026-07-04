@@ -12,10 +12,17 @@ export const INPUT_TYPES = {
   TEXT: 'text',
 };
 
+// Ensures the value has a leading '+' for libphonenumber-js compatibility
+export const normalizePhoneInput = value => {
+  if (!value) return value;
+  const trimmed = value.trim();
+  return trimmed.startsWith('+') ? trimmed : `+${trimmed}`;
+};
+
 export const validatePhoneNumber = value => {
   if (!value) return true;
   try {
-    return isValidPhoneNumber(value);
+    return isValidPhoneNumber(normalizePhoneInput(value));
   } catch (error) {
     return false;
   }
@@ -23,10 +30,11 @@ export const validatePhoneNumber = value => {
 
 export const formatPhoneNumber = value => {
   try {
-    const phoneNumber = parsePhoneNumber(value);
+    const normalized = normalizePhoneInput(value);
+    const phoneNumber = parsePhoneNumber(normalized);
     return {
       isValid: phoneNumber?.isValid() || false,
-      formattedValue: phoneNumber?.formatInternational() || value,
+      formattedValue: phoneNumber?.formatInternational() || normalized,
     };
   } catch (error) {
     return { isValid: false, formattedValue: value };
@@ -67,14 +75,21 @@ export const validateAndFormatNewTag = (
   return { isValid, formattedValue };
 };
 
-export const createNewTagMenuItem = (formattedValue, trimmedNewTag, type) => ({
-  label: formattedValue,
-  value: trimmedNewTag,
-  ...(type === INPUT_TYPES.EMAIL ? { email: trimmedNewTag } : {}),
-  ...(type === INPUT_TYPES.TEL ? { phoneNumber: trimmedNewTag } : {}),
-  thumbnail: { name: formattedValue, src: '' },
-  action: 'create',
-});
+export const createNewTagMenuItem = (formattedValue, trimmedNewTag, type) => {
+  // Normalize phone numbers to always include '+' prefix
+  const normalizedValue =
+    type === INPUT_TYPES.TEL
+      ? normalizePhoneInput(trimmedNewTag)
+      : trimmedNewTag;
+  return {
+    label: formattedValue,
+    value: normalizedValue,
+    ...(type === INPUT_TYPES.EMAIL ? { email: normalizedValue } : {}),
+    ...(type === INPUT_TYPES.TEL ? { phoneNumber: normalizedValue } : {}),
+    thumbnail: { name: formattedValue, src: '' },
+    action: 'create',
+  };
+};
 
 export const buildTagMenuItems = ({
   mode,

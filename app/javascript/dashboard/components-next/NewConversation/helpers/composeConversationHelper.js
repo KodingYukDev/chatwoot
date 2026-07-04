@@ -220,12 +220,29 @@ export const createContactSearcher = () => {
   };
 };
 
+const isPhoneNumberInput = input => {
+  // Detects inputs that look like phone numbers:
+  // - starts with '+' followed by digits, OR
+  // - is purely digits with at least 5 characters
+  const cleaned = input.replace(/[\s\-()]/g, '');
+  return /^\+?\d{5,}$/.test(cleaned);
+};
+
 export const createNewContact = async input => {
+  const isPhone = isPhoneNumberInput(input);
+  // Normalize phone: ensure '+' prefix, strip non-digit chars (except leading +)
+  const normalizedPhone = isPhone
+    ? (input.startsWith('+') ? input : `+${input}`).replace(
+        /(?!^\+)[\s\-()]/g,
+        ''
+      )
+    : null;
+
   const payload = {
-    name: input.startsWith('+')
-      ? input.slice(1) // Remove the '+' prefix if it exists
+    name: isPhone
+      ? normalizedPhone.slice(1) // Remove the '+' prefix for the name
       : getCapitalizedNameFromEmail(input),
-    ...(input.startsWith('+') ? { phone_number: input } : { email: input }),
+    ...(isPhone ? { phone_number: normalizedPhone } : { email: input }),
   };
 
   const {

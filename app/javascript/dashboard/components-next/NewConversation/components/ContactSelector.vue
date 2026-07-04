@@ -87,11 +87,21 @@ const errorClass = computed(() => {
     : '';
 });
 
+const looksLikePhoneNumber = value => {
+  // Matches inputs that look like phone numbers:
+  // - optionally starts with '+'
+  // - contains mostly digits (with optional spaces, hyphens, parentheses)
+  // - has at least 5 digit characters
+  const cleaned = value.replace(/[\s\-()]/g, '');
+  return /^\+?\d{5,}$/.test(cleaned);
+};
+
 const handleInput = value => {
-  // Update input type based on whether input starts with '+'
-  // If it does, set input type to 'tel'
-  // Otherwise, set input type to 'email'
-  inputType.value = value.startsWith('+') ? INPUT_TYPES.TEL : INPUT_TYPES.EMAIL;
+  // Update input type based on whether input looks like a phone number
+  // Supports both '+628...' and '628...' formats
+  inputType.value = looksLikePhoneNumber(value)
+    ? INPUT_TYPES.TEL
+    : INPUT_TYPES.EMAIL;
   emit('searchContacts', value);
 };
 </script>

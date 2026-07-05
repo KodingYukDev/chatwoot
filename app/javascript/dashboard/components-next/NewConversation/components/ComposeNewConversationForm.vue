@@ -109,7 +109,11 @@ const effectiveChannelType = computed(() =>
 const validationRules = computed(() => ({
   selectedContact: { required },
   targetInbox: { required },
-  message: { required: requiredIf(!inboxTypes.value.isWhatsapp) },
+  message: {
+    required: requiredIf(
+      !inboxTypes.value.isWhatsapp && !inboxTypes.value.isTwilioWhatsapp
+    ),
+  },
   subject: { required: requiredIf(inboxTypes.value.isEmail) },
 }));
 
@@ -335,11 +339,7 @@ const handleSendTwilioMessage = async ({ message, templateParams }) => {
 };
 
 const shouldShowMessageEditor = computed(() => {
-  return (
-    !inboxTypes.value.isWhatsapp &&
-    !showNoInboxAlert.value &&
-    !inboxTypes.value.isTwilioWhatsapp
-  );
+  return !showNoInboxAlert.value;
 });
 
 const isCopilotActive = computed(() => copilot.isActive?.value ?? false);

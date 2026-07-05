@@ -73,13 +73,15 @@ const showTwilioContentTemplates = computed(() => {
 });
 
 const shouldShowEmojiButton = computed(() => {
-  return (
-    !props.isWhatsappInbox && !props.isTwilioWhatsAppInbox && !props.hasNoInbox
-  );
+  return !props.hasNoInbox;
 });
 
 const isRegularMessageMode = computed(() => {
   return !props.isWhatsappInbox && !props.isTwilioWhatsAppInbox;
+});
+
+const shouldShowSendButton = computed(() => {
+  return props.hasSelectedInbox;
 });
 
 const shouldShowSignatureButton = computed(() => {
@@ -224,7 +226,7 @@ useEventListener(document, 'paste', onPaste);
         />
       </div>
       <FileUpload
-        v-if="isEmailOrWebWidgetInbox"
+        v-if="hasSelectedInbox"
         ref="uploadAttachment"
         input-id="composeNewConversationAttachment"
         :size="4096 * 4096"
@@ -265,7 +267,7 @@ useEventListener(document, 'paste', onPaste);
         @click="emit('discard')"
       />
       <Button
-        v-if="isRegularMessageMode"
+        v-if="shouldShowSendButton"
         :label="sendButtonLabel"
         size="sm"
         class="!text-xs font-medium"
